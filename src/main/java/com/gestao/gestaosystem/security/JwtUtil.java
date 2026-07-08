@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -16,14 +17,20 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final long expirationMs;
 
-    public JwtUtil(@Value("${app.jwt.secret:gestao-secret-key-1234567890}") String secretKey,
+    public JwtUtil(KeyVaultSecretProvider secretProvider,
+                   @Value("${app.jwt.secret:}") String configuredSecret,
+                   @Value("${app.jwt.secret-name:jwt-signing-secret}") String secretName,
                    @Value("${app.jwt.expiration-ms:86400000}") long expirationMs) {
-        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        String resolvedSecret = StringUtils.hasText(configuredSecret) && !"REDACTED".equals(configuredSecret)
+                ? configuredSecret
+                : secretProvider.getSecret(secretName);
+        this.secretKey = Keys.hmacShaKeyFor(resolvedSecret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
     }
 
     public JwtUtil(String secretKey) {
-        this(secretKey, 86400000L);
+        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = 86400000L;
     }
 
     public String generateToken(String username) {

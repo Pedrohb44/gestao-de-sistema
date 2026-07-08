@@ -1,8 +1,6 @@
 package com.gestao.gestaosystem.config;
 
 import com.gestao.gestaosystem.security.JwtAuthenticationFilter;
-import com.gestao.gestaosystem.security.JwtUtil;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,12 +23,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public JwtUtil jwtUtil(@Value("${app.jwt.secret:gestao-secret-key-1234567890}") String secret,
-                           @Value("${app.jwt.expiration-ms:86400000}") long expirationMs) {
-        return new JwtUtil(secret, expirationMs);
     }
 
     @Bean
