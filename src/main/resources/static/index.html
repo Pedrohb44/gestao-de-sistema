@@ -3,61 +3,179 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Gestão</title>
+    <title>Gestao de Sistema</title>
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-<div class="container">
-    <header>
-        <h1>Gestão de Estoque</h1>
-        <p>CRUD completo com autenticação JWT e API REST</p>
-    </header>
-
-    <section id="auth-panel" class="card">
-        <h2>Entrar ou criar conta</h2>
-        <form id="login-form">
-            <input id="login-username" placeholder="Usuário" required />
-            <input id="login-password" type="password" placeholder="Senha" required />
-            <button type="submit">Entrar</button>
-        </form>
-        <form id="register-form">
-            <input id="register-username" placeholder="Novo usuário" required />
-            <input id="register-password" type="password" placeholder="Nova senha" required />
-            <button type="submit">Cadastrar</button>
-        </form>
-    </section>
-
-    <section id="dashboard" class="hidden">
-        <div class="card">
-            <div class="toolbar">
-                <h2>Produtos</h2>
-                <button id="logout-btn">Sair</button>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">GS</div>
+            <div>
+                <strong>Admin Panel</strong>
+                <span>Gestao System</span>
             </div>
-            <form id="product-form">
-                <input id="product-id" type="hidden" />
-                <input id="product-name" placeholder="Nome do produto" required />
-                <input id="product-description" placeholder="Descrição" />
-                <input id="product-quantity" type="number" placeholder="Quantidade" required />
-                <input id="product-price" type="number" step="0.01" placeholder="Preço" required />
-                <input id="product-category" placeholder="Categoria" required />
-                <button type="submit">Salvar</button>
-                <button type="button" id="cancel-edit">Cancelar</button>
-            </form>
-            <table>
-                <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Descrição</th>
-                    <th>Qtd</th>
-                    <th>Preço</th>
-                    <th>Categoria</th>
-                    <th>Ações</th>
-                </tr>
-                </thead>
-                <tbody id="product-list"></tbody>
-            </table>
         </div>
-    </section>
+
+        <nav class="side-nav" aria-label="Navegacao principal">
+            <a class="active" href="#dashboard">⌂<span>Dashboard</span></a>
+            <a href="#products-panel">▦<span>Produtos</span></a>
+            <a href="#quick-actions">＋<span>Acoes</span></a>
+            <a href="#products-table">▤<span>Estoque</span></a>
+            <a href="#reports">◷<span>Relatorios</span></a>
+            <a href="#settings">⚙<span>Configuracoes</span></a>
+        </nav>
+    </aside>
+
+    <div class="workspace">
+        <header class="topbar">
+            <label class="search-box" aria-label="Buscar">
+                <span>⌕</span>
+                <input id="search-input" placeholder="Search..." />
+            </label>
+            <div class="topbar-actions">
+                <button class="icon-button" type="button" title="Notificacoes">⌾</button>
+                <div class="profile-chip">
+                    <span>AD</span>
+                    <strong>Admin</strong>
+                </div>
+                <button id="logout-btn" class="logout-button" type="button">Sair</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section id="auth-panel" class="auth-panel">
+                <div class="auth-copy">
+                    <span class="eyebrow">Gestao segura</span>
+                    <h1>Entre no painel administrativo</h1>
+                    <p>Controle produtos, estoque e indicadores em uma interface limpa e moderna.</p>
+                </div>
+                <div class="auth-grid">
+                    <form id="login-form" class="auth-card">
+                        <h2>Entrar</h2>
+                        <input id="login-username" placeholder="Usuario" required />
+                        <input id="login-password" type="password" placeholder="Senha" required />
+                        <button type="submit">Entrar</button>
+                    </form>
+                    <form id="register-form" class="auth-card subtle-card">
+                        <h2>Criar conta</h2>
+                        <input id="register-username" placeholder="Novo usuario" required />
+                        <input id="register-password" type="password" placeholder="Nova senha" required />
+                        <button type="submit">Cadastrar</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="dashboard" class="dashboard hidden">
+                <section class="hero-panel">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p>Bem-vindo de volta ao painel de gestao</p>
+                    </div>
+                    <div class="hero-decoration" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                </section>
+
+                <section class="metrics-grid" aria-label="Indicadores">
+                    <article class="metric-card">
+                        <div class="metric-icon blue">▦</div>
+                        <span>Produtos</span>
+                        <strong id="metric-products">0</strong>
+                        <p><mark id="metric-stock">0</mark> unidades em estoque</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="metric-icon violet">◈</div>
+                        <span>Categorias</span>
+                        <strong id="metric-categories">0</strong>
+                        <p>grupos cadastrados</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="metric-icon teal">$</div>
+                        <span>Valor total</span>
+                        <strong id="metric-value">R$ 0,00</strong>
+                        <p>baseado no estoque atual</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="metric-icon amber">★</div>
+                        <span>Status</span>
+                        <strong>Online</strong>
+                        <p><mark>API</mark> conectada</p>
+                    </article>
+                </section>
+
+                <section id="quick-actions" class="panel-section">
+                    <div class="section-heading">
+                        <h2>Acoes rapidas</h2>
+                        <span>Fast Access</span>
+                    </div>
+                    <div class="quick-grid">
+                        <button class="quick-card add" type="button" data-focus-form>
+                            <span>＋</span>
+                            <strong>Novo produto</strong>
+                            <small>Cadastrar item</small>
+                        </button>
+                        <button class="quick-card refresh" type="button" data-refresh>
+                            <span>↻</span>
+                            <strong>Atualizar estoque</strong>
+                            <small>Sincronizar lista</small>
+                        </button>
+                        <a class="quick-card records" href="#products-table">
+                            <span>▤</span>
+                            <strong>Ver registros</strong>
+                            <small>Tabela de produtos</small>
+                        </a>
+                    </div>
+                </section>
+
+                <section id="products-panel" class="content-grid">
+                    <article class="panel-section form-panel">
+                        <div class="section-heading">
+                            <h2>Produto</h2>
+                            <span>Cadastro</span>
+                        </div>
+                        <form id="product-form" class="product-form">
+                            <input id="product-id" type="hidden" />
+                            <input id="product-name" placeholder="Nome do produto" required />
+                            <input id="product-description" placeholder="Descricao" />
+                            <div class="field-row">
+                                <input id="product-quantity" type="number" placeholder="Quantidade" required />
+                                <input id="product-price" type="number" step="0.01" placeholder="Preco" required />
+                            </div>
+                            <input id="product-category" placeholder="Categoria" required />
+                            <div class="form-actions">
+                                <button type="submit">Salvar</button>
+                                <button type="button" id="cancel-edit" class="secondary">Cancelar</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article id="products-table" class="panel-section table-panel">
+                        <div class="section-heading">
+                            <h2>Estoque</h2>
+                            <span>Inventory</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Descricao</th>
+                                    <th>Qtd</th>
+                                    <th>Preco</th>
+                                    <th>Categoria</th>
+                                    <th>Acoes</th>
+                                </tr>
+                                </thead>
+                                <tbody id="product-list"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+            </section>
+        </main>
+    </div>
 </div>
 <script src="/js/app.js"></script>
 </body>

@@ -7,6 +7,14 @@ const productForm = document.getElementById('product-form');
 const productList = document.getElementById('product-list');
 const logoutBtn = document.getElementById('logout-btn');
 const cancelEditBtn = document.getElementById('cancel-edit');
+const searchInput = document.getElementById('search-input');
+const metricProducts = document.getElementById('metric-products');
+const metricStock = document.getElementById('metric-stock');
+const metricCategories = document.getElementById('metric-categories');
+const metricValue = document.getElementById('metric-value');
+const focusFormBtn = document.querySelector('[data-focus-form]');
+const refreshBtn = document.querySelector('[data-refresh]');
+let currentProducts = [];
 
 function isAuthenticated() {
     return Boolean(localStorage.getItem(tokenKey));
@@ -15,6 +23,7 @@ function isAuthenticated() {
 function setAuthenticated(value) {
     authPanel.classList.toggle('hidden', value);
     dashboard.classList.toggle('hidden', !value);
+    logoutBtn.classList.toggle('hidden', !value);
 }
 
 function saveToken(token) {
@@ -65,12 +74,27 @@ async function register(username, password) {
 async function loadProducts() {
     const response = await fetch('/api/products', { headers: getHeaders() });
     const products = await response.json();
-    renderProducts(products);
+    currentProducts = Array.isArray(products) ? products : [];
+    renderProducts(currentProducts);
+    updateMetrics(currentProducts);
 }
 
 function renderProducts(products) {
     productList.innerHTML = '';
-    products.forEach((product) => {
+    const term = searchInput.value.trim().toLowerCase();
+    const filteredProducts = products.filter((product) => {
+        const searchable = `${product.name} ${product.description || ''} ${product.category}`.toLowerCase();
+        return searchable.includes(term);
+    });
+
+    if (filteredProducts.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td class="empty-row" colspan="6">Nenhum produto encontrado</td>';
+        productList.appendChild(row);
+        return;
+    }
+
+    filteredProducts.forEach((product) => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${product.name}</td>
@@ -83,6 +107,23 @@ function renderProducts(products) {
                 <button data-delete="${product.id}">Excluir</button>
             </td>`;
         productList.appendChild(row);
+    });
+}
+
+function updateMetrics(products) {
+    const totalProducts = products.length;
+    const totalStock = products.reduce((sum, product) => sum + Number(product.quantity || 0), 0);
+    const categories = new Set(products.map((product) => product.category).filter(Boolean));
+    const totalValue = products.reduce((sum, product) => {
+        return sum + Number(product.price || 0) * Number(product.quantity || 0);
+    }, 0);
+
+    metricProducts.textContent = totalProducts;
+    metricStock.textContent = totalStock;
+    metricCategories.textContent = categories.size;
+    metricValue.textContent = totalValue.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
     });
 }
 
@@ -159,6 +200,17 @@ cancelEditBtn.addEventListener('click', () => {
     productForm.reset();
     document.getElementById('product-id').value = '';
 });
+
+searchInput.addEventListener('input', () => {
+    renderProducts(currentProducts);
+});
+
+focusFormBtn.addEventListener('click', () => {
+    document.getElementById('product-name').focus();
+    document.getElementById('products-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+refreshBtn.addEventListener('click', loadProducts);
 
 productList.addEventListener('click', async (event) => {
     const editButton = event.target.closest('[data-edit]');
