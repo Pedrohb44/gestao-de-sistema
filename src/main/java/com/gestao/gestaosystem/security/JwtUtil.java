@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final long expirationMs;
 
+    @Autowired
     public JwtUtil(ObjectProvider<KeyVaultSecretProvider> secretProvider,
                    @Value("${app.jwt.secret:}") String configuredSecret,
                    @Value("${app.jwt.secret-name:jwt-signing-secret}") String secretName,
