@@ -10,7 +10,8 @@ class JwtUtilTest {
 
     @Test
     void shouldCreateAndValidateToken() {
-        JwtUtil jwtUtil = new JwtUtil("test-secret-key-1234567890");
+        // Use a cryptographically strong key: 32+ characters for HS256 (256 bits minimum)
+        JwtUtil jwtUtil = new JwtUtil("test-secret-key-12345678901234567890abcdefgh");
 
         String token = jwtUtil.generateToken("admin");
 
