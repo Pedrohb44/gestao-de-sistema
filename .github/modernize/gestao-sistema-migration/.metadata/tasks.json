@@ -1,0 +1,295 @@
+{
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "sequence": 1,
+      "name": "Upgrade Java Runtime to 25 and Spring Boot to 4.x",
+      "type": "upgrade",
+      "category": "runtime-modernization",
+      "description": "Upgrade Java runtime from version 21 to the latest stable version 25, and Spring Boot from 3.3.3 to 4.x. This includes Spring Framework 7.x upgrade and Jakarta EE namespace migration (javax.* → jakarta.*). This is a prerequisite for all subsequent security and deployment tasks.",
+      "priority": "critical",
+      "skill": "modernize-java-upgrade",
+      "knowledgeBaseId": "java-version-upgrade",
+      "requirements": [
+        "Update pom.xml Java version property from 21 to 25",
+        "Update Spring Boot parent version from 3.3.3 to 4.x",
+        "Migrate all javax.* imports to jakarta.* equivalents",
+        "Update all Spring Boot starter dependencies to 4.x compatible versions",
+        "Update Spring Cloud Azure dependencies for Java 25 compatibility",
+        "Review and update any version-specific configuration",
+        "Execute full test suite to ensure compatibility"
+      ],
+      "prerequisites": [],
+      "depends_on": [],
+      "estimated_effort": "3 days",
+      "acceptance_criteria": [
+        "Maven build completes successfully with no errors",
+        "All unit tests pass with upgraded versions",
+        "Integration tests pass in staging environment",
+        "No deprecation warnings for Java 25 or Spring Boot 4.x",
+        "Application starts successfully with upgraded versions"
+      ],
+      "affected_components": [
+        "pom.xml",
+        "src/main/java/**/*.java (javax to jakarta migration)",
+        "Spring Boot configuration properties"
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "sequence": 2,
+      "name": "Migrate Plaintext Credentials to Azure Key Vault",
+      "type": "transform",
+      "category": "security-hardening",
+      "description": "Remove hardcoded plaintext credentials and secrets from configuration files and source code. Implement Azure Key Vault integration for secure credential management. This addresses the identified issue of passwords found in configuration files and default/well-known credentials.",
+      "priority": "high",
+      "skill": "migration-plaintext-credential-to-azure-keyvault",
+      "knowledgeBaseId": "plaintext-credential-to-azure-keyvault",
+      "requirements": [
+        "Identify all hardcoded credentials in application.properties and source code",
+        "Add Azure Identity and Azure Key Vault Secret dependencies to pom.xml",
+        "Implement SecretClient for Key Vault credential retrieval",
+        "Update Spring Boot configuration to use Key Vault-backed properties",
+        "Create Azure Key Vault secrets for all credentials (database password, API keys, tokens)",
+        "Update application.properties to remove plaintext credentials",
+        "Implement proper error handling for Key Vault access",
+        "Configure managed identity for local development and Azure deployment"
+      ],
+      "prerequisites": [
+        "TASK-001"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "estimated_effort": "2 days",
+      "acceptance_criteria": [
+        "No plaintext passwords in application.properties",
+        "No hardcoded credentials in Java source code",
+        "Azure Key Vault integration tests pass",
+        "Application retrieves credentials from Key Vault successfully",
+        "Local development works with managed identity or local credentials",
+        "Security scan shows no exposed credentials"
+      ],
+      "affected_components": [
+        "application.properties",
+        "pom.xml (new dependencies)",
+        "SecurityConfig.java",
+        "src/main/java/com/gestao/gestaosystem/config/**",
+        "src/main/java/com/gestao/gestaosystem/security/**"
+      ],
+      "security_issues_addressed": [
+        "Plaintext credentials in configuration file",
+        "Hardcoded or well-known password detected"
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "sequence": 3,
+      "name": "Secure PostgreSQL Database with Azure Managed Identity",
+      "type": "transform",
+      "category": "database-security",
+      "description": "Migrate PostgreSQL database authentication from password-based to Azure Managed Identity for passwordless, secure database connections. This removes the need for hardcoded database passwords and implements Azure best practices for credential-free authentication.",
+      "priority": "high",
+      "skill": "migration-mi-postgresql",
+      "knowledgeBaseId": "mi-postgresql",
+      "requirements": [
+        "Add Spring Cloud Azure PostgreSQL starter dependency (spring-cloud-azure-starter-jdbc-postgresql)",
+        "Update application.properties to remove database password and configure for managed identity",
+        "Update DataSource configuration to use Azure Managed Identity",
+        "Update Spring Data JPA configuration for managed identity support",
+        "Configure Azure PostgreSQL instance to support managed identity",
+        "Update JDBC connection string format for managed identity authentication",
+        "Test database connectivity using managed identity",
+        "Implement fallback authentication for local development environment"
+      ],
+      "prerequisites": [
+        "TASK-001",
+        "TASK-002"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-002"
+      ],
+      "estimated_effort": "2 days",
+      "acceptance_criteria": [
+        "PostgreSQL connection established using managed identity",
+        "No database password in application.properties",
+        "Integration tests pass with managed identity authentication",
+        "Database operations (CRUD on Product entity) work correctly",
+        "Connection pooling works properly with managed identity",
+        "Local development environment has proper fallback authentication",
+        "Azure PostgreSQL instance is configured for managed identity support"
+      ],
+      "affected_components": [
+        "application.properties",
+        "pom.xml (new Spring Cloud Azure PostgreSQL dependency)",
+        "src/main/java/com/gestao/gestaosystem/config/DataSourceConfig.java (if exists)"
+      ],
+      "security_issues_addressed": [
+        "PostgreSQL database connections using plaintext passwords"
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "sequence": 4,
+      "name": "Security Scanning and Vulnerability Remediation",
+      "type": "security",
+      "category": "security-hardening",
+      "description": "Execute comprehensive security scanning to identify and remediate CVEs in dependencies after runtime upgrade to Java 25 and Spring Boot 4.x. Ensure all vulnerable packages are updated to secure versions.",
+      "priority": "high",
+      "skill": "modernize-java-security",
+      "requirements": [
+        "Run Maven dependency check to identify CVEs",
+        "Review identified vulnerabilities and their severity",
+        "Update vulnerable dependencies to patched versions",
+        "Re-run security scan to confirm all CVEs are remediated",
+        "Verify application functionality with patched dependencies",
+        "Document any unpatched critical vulnerabilities and mitigation strategies"
+      ],
+      "prerequisites": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "estimated_effort": "1-2 days",
+      "acceptance_criteria": [
+        "No critical or high-severity CVEs in dependencies",
+        "Security scan completes with passing status",
+        "All tests pass after dependency updates",
+        "No new deprecation warnings introduced",
+        "Security report is generated and documented"
+      ],
+      "affected_components": [
+        "pom.xml (dependency versions)"
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "sequence": 5,
+      "name": "Containerization - Create Docker Image",
+      "type": "containerization",
+      "category": "deployment-preparation",
+      "description": "Optimize and prepare Docker configuration for production deployment. Ensure the application container is properly configured for Azure Container Apps or App Service deployment with proper health checks, resource limits, and security best practices.",
+      "priority": "high",
+      "skill": "containerization",
+      "requirements": [
+        "Review and optimize existing Dockerfile for production use",
+        "Update base image to use Java 25 runtime",
+        "Implement multi-stage Docker build for optimized image size",
+        "Configure proper health check endpoint",
+        "Set resource requests and limits",
+        "Implement security best practices (non-root user, minimal base image)",
+        "Build and test Docker image locally",
+        "Verify application functionality inside container"
+      ],
+      "prerequisites": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003",
+        "TASK-004"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003",
+        "TASK-004"
+      ],
+      "estimated_effort": "1 day",
+      "acceptance_criteria": [
+        "Docker image builds successfully",
+        "Container runs without errors",
+        "All API endpoints respond correctly inside container",
+        "Health check endpoint returns 200 status",
+        "Container image size is optimized",
+        "Image follows Azure container best practices",
+        "Image can be pushed to Azure Container Registry"
+      ],
+      "affected_components": [
+        "Dockerfile",
+        "docker-compose.yml (if needed for local testing)"
+      ]
+    },
+    {
+      "id": "TASK-006",
+      "sequence": 6,
+      "name": "Deploy Application to Azure",
+      "type": "deployment",
+      "category": "cloud-deployment",
+      "description": "Deploy the modernized and containerized gestao-sistema application to Azure infrastructure. Configure managed identity, Key Vault access, and PostgreSQL database connections for the deployed application.",
+      "priority": "high",
+      "skill": "azcli-containerapp-deploy",
+      "requirements": [
+        "Create Azure Container Registry for image storage",
+        "Push Docker image to Azure Container Registry",
+        "Create Azure Container Apps environment and container app instance",
+        "Configure container app environment variables and secrets reference to Key Vault",
+        "Set up managed identity for container app",
+        "Configure RBAC and Key Vault access policies",
+        "Configure networking and ingress rules",
+        "Set up logging and monitoring with Application Insights",
+        "Configure health probes and auto-scaling policies",
+        "Test deployed application endpoints"
+      ],
+      "prerequisites": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003",
+        "TASK-004",
+        "TASK-005"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003",
+        "TASK-004",
+        "TASK-005"
+      ],
+      "deployment_target": "Azure Container Apps",
+      "estimated_effort": "2 days",
+      "acceptance_criteria": [
+        "Application is accessible via public URL",
+        "All API endpoints respond correctly",
+        "JWT authentication works in production",
+        "PostgreSQL database connections use managed identity",
+        "Credentials are retrieved from Key Vault",
+        "Application logs are visible in Application Insights",
+        "Health check endpoint is accessible",
+        "Auto-scaling policies are configured and working",
+        "HTTPS/TLS is configured correctly",
+        "No sensitive data is logged or exposed"
+      ],
+      "affected_components": [
+        "Azure infrastructure (Container Registry, Container Apps, Key Vault, PostgreSQL)",
+        "Application configuration in production environment"
+      ]
+    }
+  ],
+  "summary": {
+    "total_tasks": 6,
+    "critical_tasks": 1,
+    "high_priority_tasks": 5,
+    "estimated_total_effort": "11-14 days",
+    "phases": {
+      "phase_1_runtime_upgrade": [
+        "TASK-001"
+      ],
+      "phase_2_security_hardening": [
+        "TASK-002",
+        "TASK-003",
+        "TASK-004"
+      ],
+      "phase_3_deployment": [
+        "TASK-005",
+        "TASK-006"
+      ]
+    },
+    "critical_path": [
+      "TASK-001 → TASK-002 → TASK-003 → TASK-004 → TASK-005 → TASK-006"
+    ]
+  }
+}
