@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -17,13 +18,15 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final long expirationMs;
 
-    public JwtUtil(KeyVaultSecretProvider secretProvider,
+    public JwtUtil(ObjectProvider<KeyVaultSecretProvider> secretProvider,
                    @Value("${app.jwt.secret:}") String configuredSecret,
                    @Value("${app.jwt.secret-name:jwt-signing-secret}") String secretName,
                    @Value("${app.jwt.expiration-ms:86400000}") long expirationMs) {
         String resolvedSecret = StringUtils.hasText(configuredSecret) && !"REDACTED".equals(configuredSecret)
                 ? configuredSecret
-                : secretProvider.getSecret(secretName);
+                : secretProvider.getIfAvailable(() -> {
+                    throw new IllegalStateException("Configure 'app.jwt.secret' or enable Azure Key Vault with 'azure.keyvault.enabled=true'.");
+                }).getSecret(secretName);
         this.secretKey = Keys.hmacShaKeyFor(resolvedSecret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
     }
